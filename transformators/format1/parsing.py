@@ -1,14 +1,23 @@
 # coding=utf-8
 import json
+from datetime import datetime
 
 
 class ExperienceItem:
-    starts: str
-    ends: str
+    starts: datetime
+    ends: datetime
     employer: str
     city: str
     position: str
     description: str
+
+    def __init__(self, starts, ends, employer, city, position, description):
+        self.starts = datetime.strptime(starts, '%Y-%m-%d')
+        self.ends = datetime.strptime(ends, '%Y-%m-%d') if ends else datetime.now()
+        self.employer = employer
+        self.city = city
+        self.position = position
+        self.description = description
 
 
 class EducationItem:
@@ -81,13 +90,14 @@ def parse_resumes(resumes: list[dict]) -> list[Resume]:
 def parse_experience_items(experience_items: list[dict]) -> list[ExperienceItem]:
     result: list[ExperienceItem] = []
     for item in experience_items:
-        e = ExperienceItem()
-        e.starts = item['starts']
-        e.ends = item['ends']
-        e.employer = item['employer']
-        e.city = item['city']
-        e.position = item['position']
-        e.description = item['description']
+        e = ExperienceItem(
+            item['starts'],
+            item['ends'],
+            item['employer'],
+            item['city'],
+            item['position'],
+            item['description']
+        )
         result.append(e)
     return result
 

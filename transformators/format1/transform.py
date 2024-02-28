@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from transformators.format1.parsing import parse_file, Resume, Vacancy, EducationItem
 import pandas as pd
 
@@ -11,6 +13,7 @@ class TransformedData:
     resume_main_keywords: list[str]
     # resume_sub_keywords: list[str]
     edu: list[str]
+    resume_experience: int
     target: int
 
 
@@ -45,6 +48,13 @@ def get_data(vacancy: Vacancy, resume: Resume, target: bool) -> dict[str, any]:
     else:
         data.resume_main_keywords = []
     data.edu = parse_education_items(resume.educationItem)
+    if resume.experienceItem and len(resume.experienceItem) > 0:
+        carrier_start: datetime = min(map(lambda x: x.starts, resume.experienceItem))
+        carrier_end: datetime = max(map(lambda x: x.ends, resume.experienceItem))
+        delta: timedelta = carrier_end - carrier_start
+        data.resume_experience = int(delta.days / 365.25)
+    else:
+        data.resume_experience = 0
     data.target = target
     return data.__dict__
 
@@ -74,7 +84,7 @@ def process_data(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def data_to_output(data: pd.DataFrame) -> pd.DataFrame:
-    output = data[['vacancy_id', 'resume_id', 'is_english', 'edu', 'target']].copy()
+    output = data[['vacancy_id', 'resume_id', 'is_english', 'edu', 'target', 'resume_experience']].copy()
     output['vacancy_main_keywords'] = data['vacancy_main_keywords'].apply(lambda x: ' '.join(x))
     output['resume_main_keywords'] = data['resume_main_keywords'].apply(lambda x: ' '.join(x))
     return output
