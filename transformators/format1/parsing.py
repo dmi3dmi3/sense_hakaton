@@ -50,6 +50,7 @@ class Vacancy:
     keywords: str
     description: str
     comment: str
+    requested_experience: int
     failed_resumes: list[Resume]
     confirmed_resumes: list[Resume]
 
@@ -61,6 +62,7 @@ def parse_json_to_structure(json_data: dict) -> Vacancy:
     vacancy.keywords = json_data['vacancy']['keywords']
     vacancy.description = json_data['vacancy']['description']
     vacancy.comment = json_data['vacancy']['comment']
+    vacancy.requested_experience = json_data['vacancy']['requested_experience']
     vacancy.failed_resumes = parse_resumes(json_data['failed_resumes'])
     vacancy.confirmed_resumes = parse_resumes(json_data['confirmed_resumes'])
     return vacancy

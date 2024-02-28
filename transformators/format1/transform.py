@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 
+import os
+
 from transformators.format1.parsing import parse_file, Resume, Vacancy, EducationItem
 import pandas as pd
 
@@ -9,6 +11,7 @@ class TransformedData:
     vacancy_main_keywords: list[str]
     # vacancy_sub_keywords: list[str]
     resume_id: str
+    vacancy_requested_experience: int
     is_english: bool
     resume_main_keywords: list[str]
     # resume_sub_keywords: list[str]
@@ -34,6 +37,7 @@ def get_data(vacancy: Vacancy, resume: Resume, target: bool) -> dict[str, any]:
     vacancy_name_list = list(filter(lambda x: x != '', vacancy_name_list))
     data.vacancy_main_keywords = vacancy_name_list
     data.resume_id = resume.uuid
+    data.requested_experience = vacancy.requested_experience
     data.is_english = "Английский" in resume.languageItems
     if resume.key_skills:
         skills_str: str = (resume.key_skills
@@ -84,15 +88,17 @@ def process_data(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def data_to_output(data: pd.DataFrame) -> pd.DataFrame:
-    output = data[['vacancy_id', 'resume_id', 'is_english', 'edu', 'target', 'resume_experience']].copy()
+    output = data[['vacancy_id', 'resume_id', 'requested_experience', 'is_english', 'edu', 'target', 'resume_experience']].copy()
     output['vacancy_main_keywords'] = data['vacancy_main_keywords'].apply(lambda x: ' '.join(x))
     output['resume_main_keywords'] = data['resume_main_keywords'].apply(lambda x: ' '.join(x))
     return output
 
 
-
 def main():
-    vacancies = parse_file('case_2_data_for_members.json')
+    current_dir = os.path.dirname(os.getcwd())
+    parent_dir = os.path.dirname(current_dir)
+    file_path = os.path.join(parent_dir, 'case_2_data_for_members.json')
+    vacancies = parse_file(file_path)
     results = []
     for vacancy in vacancies:
         for resume in vacancy.failed_resumes:
