@@ -2,14 +2,14 @@ from transformators.format1.parsing import parse_file, Resume, Vacancy, Educatio
 import pandas as pd
 
 
-class Result:
+class TransformedData:
     vacancy_id: str
     vacancy_main_keywords: list[str]
-    vacancy_sub_keywords: list[str]
+    # vacancy_sub_keywords: list[str]
     resume_id: str
     is_english: bool
     resume_main_keywords: list[str]
-    resume_sub_keywords: list[str]
+    # resume_sub_keywords: list[str]
     edu: list[str]
     target: int
 
@@ -23,15 +23,15 @@ def parse_education_items(education_items: list[EducationItem]) -> str:
     return 'courses'
 
 
-def get_result(vacancy: Vacancy, resume: Resume, target: bool) -> dict[str, any]:
-    result: Result = Result()
-    result.vacancy_id = vacancy.uuid
+def get_data(vacancy: Vacancy, resume: Resume, target: bool) -> dict[str, any]:
+    data: TransformedData = TransformedData()
+    data.vacancy_id = vacancy.uuid
     vacancy_name: str = vacancy.name.lower()
     vacancy_name_list: list[str] = vacancy_name.split(' ')
     vacancy_name_list = list(filter(lambda x: x != '', vacancy_name_list))
-    result.vacancy_main_keywords = vacancy_name_list
-    result.resume_id = resume.uuid
-    result.is_english = "Английский" in resume.languageItems
+    data.vacancy_main_keywords = vacancy_name_list
+    data.resume_id = resume.uuid
+    data.is_english = "Английский" in resume.languageItems
     if resume.key_skills:
         skills_str: str = (resume.key_skills
                            .lower()
@@ -41,12 +41,12 @@ def get_result(vacancy: Vacancy, resume: Resume, target: bool) -> dict[str, any]
         skills_list: list[str] = skills_str.split(',')
         skills_map: map[str] = map(lambda x: x.strip(), skills_list)
         skills_map = filter(lambda x: x != '', skills_map)
-        result.resume_main_keywords = list(skills_map)
+        data.resume_main_keywords = list(skills_map)
     else:
-        result.resume_main_keywords = []
-    result.edu = parse_education_items(resume.educationItem)
-    result.target = target
-    return result.__dict__
+        data.resume_main_keywords = []
+    data.edu = parse_education_items(resume.educationItem)
+    data.target = target
+    return data.__dict__
 
 
 def get_count_dict(keywords: list[list[str]]) -> dict[str, int]:
@@ -60,30 +60,42 @@ def get_count_dict(keywords: list[list[str]]) -> dict[str, int]:
     return count_dict
 
 
-def main():
-    vacancies = parse_file('case_2_data_for_members.json')
-    results = []
-    for vacancy in vacancies:
-        for resume in vacancy.failed_resumes:
-            result = get_result(vacancy, resume, False)
-            results.append(result)
-        for resume in vacancy.confirmed_resumes:
-            result = get_result(vacancy, resume, True)
-            results.append(result)
-    df_results = pd.DataFrame(results)
-
-    resume_keywords_count_dict = get_count_dict(df_results['resume_main_keywords'])
-    print(len(resume_keywords_count_dict))
+def process_data(data: pd.DataFrame) -> pd.DataFrame:
+    resume_keywords_count_dict = get_count_dict(data['resume_main_keywords'])
     rare_keywords = []
     for keyword, count in resume_keywords_count_dict.items():
         if count < 10:
             rare_keywords.append(keyword)
 
     # remove from resume_main_keywords rare keywords
-    df_results['resume_main_keywords'] = (df_results['resume_main_keywords']
-                                          .apply(lambda x: list(filter(lambda y: y not in rare_keywords, x))))
+    data['resume_main_keywords'] = (data['resume_main_keywords']
+                                    .apply(lambda x: list(filter(lambda y: y not in rare_keywords, x))))
+    return data
 
-    df_results.to_csv('case_2_results.csv', index=False)
+
+def data_to_output(data: pd.DataFrame) -> pd.DataFrame:
+    output = data[['vacancy_id', 'resume_id', 'is_english', 'edu', 'target']].copy()
+    output['vacancy_main_keywords'] = data['vacancy_main_keywords'].apply(lambda x: ' '.join(x))
+    output['resume_main_keywords'] = data['resume_main_keywords'].apply(lambda x: ' '.join(x))
+    return output
+
+
+
+def main():
+    vacancies = parse_file('case_2_data_for_members.json')
+    results = []
+    for vacancy in vacancies:
+        for resume in vacancy.failed_resumes:
+            result = get_data(vacancy, resume, False)
+            results.append(result)
+        for resume in vacancy.confirmed_resumes:
+            result = get_data(vacancy, resume, True)
+            results.append(result)
+    df_results = pd.DataFrame(results)
+
+    data = process_data(df_results)
+    output = data_to_output(data)
+    output.to_csv('case_2_results.csv', index=False)
 
 
 if __name__ == '__main__':
