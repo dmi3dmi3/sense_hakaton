@@ -1,5 +1,7 @@
 # coding=utf-8
 import json
+from typing import List
+
 
 class ExperienceItem:
     starts: str
@@ -18,6 +20,7 @@ class EducationItem:
     result: str
     education_type: str
     education_level: str
+
 
 class Resume:
     uuid: str
@@ -77,7 +80,7 @@ def parse_resumes(resumes: list[dict]) -> list[Resume]:
 
 
 def parse_experience_items(experience_items: list[dict]) -> list[ExperienceItem]:
-    result = []
+    result: list[ExperienceItem] = []
     for item in experience_items:
         e = ExperienceItem()
         e.starts = item['starts']
@@ -91,7 +94,7 @@ def parse_experience_items(experience_items: list[dict]) -> list[ExperienceItem]
 
 
 def parse_education_items(education_items: list[dict]) -> list[EducationItem]:
-    result = []
+    result: list[EducationItem] = []
     for item in education_items:
         e = EducationItem()
         e.year = item['year']
@@ -107,8 +110,8 @@ def parse_education_items(education_items: list[dict]) -> list[EducationItem]:
 
 def parse_file(file_path: str) -> list[Vacancy]:
     with open(file_path, 'r') as file:
-        json_str = json.load(file)
-        return list(map(parse_json_to_structure, json_str))
+        json_dict: dict = json.load(file)
+        return list(map(parse_json_to_structure, json_dict))
 
 
 def main():

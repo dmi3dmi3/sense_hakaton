@@ -1,6 +1,3 @@
-from typing import Dict
-
-import transformators.format1.parsing
 from transformators.format1.parsing import parse_file, Resume, Vacancy, EducationItem
 import pandas as pd
 
@@ -26,25 +23,25 @@ def parse_education_items(education_items: list[EducationItem]) -> str:
     return 'courses'
 
 
-def get_result(vacancy: Vacancy, resume: Resume, target: bool):
-    result = Result()
+def get_result(vacancy: Vacancy, resume: Resume, target: bool) -> dict[str, any]:
+    result: Result = Result()
     result.vacancy_id = vacancy.uuid
-    vacancy_name = vacancy.name.lower()
-    vacancy_name_list = vacancy_name.split(' ')
+    vacancy_name: str = vacancy.name.lower()
+    vacancy_name_list: list[str] = vacancy_name.split(' ')
     vacancy_name_list = list(filter(lambda x: x != '', vacancy_name_list))
     result.vacancy_main_keywords = vacancy_name_list
     result.resume_id = resume.uuid
     result.is_english = "Английский" in resume.languageItems
     if resume.key_skills:
-        skills_str = (resume.key_skills
-                      .lower()
-                      .replace(';', ',')
-                      .replace('(', '')
-                      .replace(')', ''))
-        skills_list = skills_str.split(',')
-        skills_list = map(lambda x: x.strip(), skills_list)
-        skills_list = filter(lambda x: x != '', skills_list)
-        result.resume_main_keywords = list(skills_list)
+        skills_str: str = (resume.key_skills
+                           .lower()
+                           .replace(';', ',')
+                           .replace('(', '')
+                           .replace(')', ''))
+        skills_list: list[str] = skills_str.split(',')
+        skills_map: map[str] = map(lambda x: x.strip(), skills_list)
+        skills_map = filter(lambda x: x != '', skills_map)
+        result.resume_main_keywords = list(skills_map)
     else:
         result.resume_main_keywords = []
     result.edu = parse_education_items(resume.educationItem)
