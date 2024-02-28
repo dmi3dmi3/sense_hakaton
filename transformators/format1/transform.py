@@ -29,11 +29,15 @@ def parse_education_items(education_items: list[EducationItem]) -> str:
 def get_result(vacancy: Vacancy, resume: Resume, target: bool):
     result = Result()
     result.vacancy_id = vacancy.uuid
-    result.vacancy_main_keywords = vacancy.name.split(' ')
+    vacancy_name = vacancy.name.lower()
+    vacancy_name_list = vacancy_name.split(' ')
+    vacancy_name_list = list(filter(lambda x: x != '', vacancy_name_list))
+    result.vacancy_main_keywords = vacancy_name_list
     result.resume_id = resume.uuid
     result.is_english = "Английский" in resume.languageItems
     if resume.key_skills:
         skills_str = (resume.key_skills
+                      .lower()
                       .replace(';', ',')
                       .replace('(', '')
                       .replace(')', ''))
@@ -79,9 +83,9 @@ def main():
             rare_keywords.append(keyword)
 
     # remove from resume_main_keywords rare keywords
-    df_results['resume_main_keywords'] = df_results['resume_main_keywords'].apply(lambda x: list(filter(lambda y: y not in rare_keywords, x)))
-    resume_keywords_count_dict = get_count_dict(df_results['resume_main_keywords'])
-    print(len(resume_keywords_count_dict))
+    df_results['resume_main_keywords'] = (df_results['resume_main_keywords']
+                                          .apply(lambda x: list(filter(lambda y: y not in rare_keywords, x))))
+
     df_results.to_csv('case_2_results.csv', index=False)
 
 
