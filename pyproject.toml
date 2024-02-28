@@ -1,0 +1,68 @@
+[tool.poetry]
+name = "resume-filter"
+version = "0.1.0"
+description = "" # TODO add description
+authors = ["Al-Amin Uzhakhov <al-amin.uzhahov@yandex.ru>"] # TODO add authors
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+litestar = "^2.6.1"
+pandas = "^2.2.1"
+pydantic = "^2.6.3"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.2.0"
+mypy = "^1.8.0"
+pylint = "^3.1.0"
+isort = "^5.13.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+python_version = "3.11"
+pretty = true
+ignore_missing_imports = true
+namespace_packages = true
+check_untyped_defs = true
+
+
+[tool.pylint]
+    [tool.pylint.master]
+    fail-under = 8
+    recursive = "y"
+    good-names-rgxs="^[_a-z][_a-z0-9]?$"
+    extension-pkg-whitelist = ["math", "pydantic"]
+    [tool.pylint."FORMAT"]
+    max-line-length = 120
+
+[tool.black]
+line-length = 120
+target-version = ["py311"]
+include = '\.pyi?$'
+skip-string-normalization = true
+exclude = '''
+(
+  /(
+    | \.git
+    | \.mypy_cache
+  )/
+)
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 120
+sections = ['FUTURE', 'STDLIB', 'THIRDPARTY', 'FIRSTPARTY', 'LOCALFOLDER']
+no_lines_before = ['STDLIB', 'LOCALFOLDER']
+known_third_party = []
+multi_line_output = 3
+lines_after_imports = 2
+
+[tool.docformatter]
+wrap-summaries=120
+wrap-descriptions=120
+
