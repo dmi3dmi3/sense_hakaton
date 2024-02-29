@@ -12,6 +12,8 @@ class TransformedData:
     # vacancy_sub_keywords: list[str]
     resume_id: str
     vacancy_requested_experience: int
+    vacancy_description: str
+    resume_description: str
     is_english: bool
     resume_main_keywords: list[str]
     # resume_sub_keywords: list[str]
@@ -32,6 +34,7 @@ def parse_education_items(education_items: list[EducationItem]) -> str:
 def get_data(vacancy: Vacancy, resume: Resume, target: bool) -> dict[str, any]:
     data: TransformedData = TransformedData()
     data.vacancy_id = vacancy.uuid
+    data.resume_description = ""
     vacancy_name: str = vacancy.name.lower()
     vacancy_name_list: list[str] = vacancy_name.split(' ')
     vacancy_name_list = list(filter(lambda x: x != '', vacancy_name_list))
@@ -39,6 +42,7 @@ def get_data(vacancy: Vacancy, resume: Resume, target: bool) -> dict[str, any]:
     data.resume_id = resume.uuid
     data.requested_experience = vacancy.requested_experience
     data.is_english = "Английский" in resume.languageItems
+    data.vacancy_description = vacancy.description.lower()
     if resume.key_skills:
         skills_str: str = (resume.key_skills
                            .lower()
@@ -59,6 +63,10 @@ def get_data(vacancy: Vacancy, resume: Resume, target: bool) -> dict[str, any]:
         data.resume_experience = int(delta.days / 365.25)
     else:
         data.resume_experience = 0
+
+    for item in resume.experienceItem:
+        if item.description:
+            data.resume_description += item.description.lower()
     data.target = target
     return data.__dict__
 
@@ -88,7 +96,8 @@ def process_data(data: pd.DataFrame) -> pd.DataFrame:
 
 
 def data_to_output(data: pd.DataFrame) -> pd.DataFrame:
-    output = data[['vacancy_id', 'resume_id', 'requested_experience', 'is_english', 'edu', 'target', 'resume_experience']].copy()
+    output = data[['vacancy_id', 'resume_id', 'requested_experience', 'vacancy_description', 'resume_description',
+                   'is_english', 'edu', 'target', 'resume_experience']].copy()
     output['vacancy_main_keywords'] = data['vacancy_main_keywords'].apply(lambda x: ' '.join(x))
     output['resume_main_keywords'] = data['resume_main_keywords'].apply(lambda x: ' '.join(x))
     return output
